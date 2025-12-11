@@ -19,7 +19,7 @@ async def whatsapp_webhook(
     Body: str = Form(...),
 ):
     completion = client.chat.completions.create(
-        model="gpt-5.1-mini",
+        model="gpt-4.1-mini",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": Body},
