@@ -1,25 +1,33 @@
+import os
 from fastapi import FastAPI, Form
 from fastapi.responses import PlainTextResponse
+from openai import OpenAI
 
 app = FastAPI()
 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+SYSTEM_PROMPT = (
+    "Eres un asistente de WhatsApp para una agencia de marketing digital. "
+    "Respondes siempre de forma cercana, clara y corta (máximo 3-4 frases). "
+    "Tu objetivo es ayudar, orientar y mantener un tono humano y natural."
+)
 
 @app.post("/whatsapp")
 async def whatsapp_webhook(
     From: str = Form(...),
     Body: str = Form(...),
 ):
-    """
-    Webhook que llama Twilio cuando llega un WhatsApp.
-    From = número del usuario
-    Body = texto que ha escrito el usuario
-    """
-    print(f"Mensaje de {From}: {Body}")
+    completion = client.chat.completions.create(
+        model="gpt-5.1-mini",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": Body},
+        ]
+    )
 
-    # Aquí de momento solo vamos a hacer un "eco"
-    reply_text = f"Has dicho: {Body}"
+    reply_text = completion.choices[0].message.content.strip()
 
-    # Twilio espera una respuesta en formato XML (TwiML)
     twiml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Message>{reply_text}</Message>
