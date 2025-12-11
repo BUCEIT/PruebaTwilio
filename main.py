@@ -5,7 +5,7 @@ from openai import OpenAI
 
 app = FastAPI()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("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"))
 
 SYSTEM_PROMPT = (
     "Eres un asistente de WhatsApp para una agencia de marketing digital. "
