@@ -5,7 +5,7 @@ from openai import OpenAI, AuthenticationError, RateLimitError, OpenAIError
 app = FastAPI()
 
 # ❗ Pega aquí tu API key real SIN ESPACIOS NI ASTERISCOS
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SYSTEM_PROMPT = (
     "Eres un asistente de WhatsApp para una agencia de marketing digital. "
