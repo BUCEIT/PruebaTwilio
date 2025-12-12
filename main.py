@@ -1,4 +1,5 @@
 import os
+import traceback
 from fastapi import FastAPI, Form
 from fastapi.responses import PlainTextResponse
 from openai import OpenAI, AuthenticationError, RateLimitError, OpenAIError
