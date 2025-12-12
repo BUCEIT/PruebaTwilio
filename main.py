@@ -1,16 +1,17 @@
+import os
 from fastapi import FastAPI, Form
 from fastapi.responses import PlainTextResponse
 from openai import OpenAI, AuthenticationError, RateLimitError, OpenAIError
 
 app = FastAPI()
 
-# ❗ Pega aquí tu API key real SIN ESPACIOS NI ASTERISCOS
+# LA CLAVE NO ESTÁ AQUÍ
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SYSTEM_PROMPT = (
     "Eres un asistente de WhatsApp para una agencia de marketing digital. "
-    "Respondes siempre con un tono cercano, claro y profesional, en mensajes "
-    "cortos (3-4 frases máximo). Si la pregunta es ambigua, pides aclaración."
+    "Respondes claro, cercano y profesional. "
+    "Máximo 3-4 frases."
 )
 
 @app.post("/whatsapp")
@@ -18,47 +19,30 @@ async def whatsapp_webhook(
     From: str = Form(...),
     Body: str = Form(...),
 ):
-
     try:
-        # 👉 API NUEVA (OpenAI Responses API)
         response = client.responses.create(
             model="gpt-5.1",
             input=[
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT
-                },
-                {
-                    "role": "user",
-                    "content": Body
-                }
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": Body},
             ]
         )
 
         reply_text = response.output_text.strip()
 
     except RateLimitError:
-        reply_text = (
-            "Ahora mismo he superado el límite de uso del modelo de IA. "
-            "Inténtalo de nuevo en unos minutos."
-        )
+        reply_text = "Ahora mismo no puedo responder. Inténtalo más tarde."
 
     except AuthenticationError:
-        reply_text = (
-            "Hay un problema con la clave de acceso a la IA. "
-            "Por favor, contacta con soporte técnico."
-        )
+        reply_text = "Problema interno con la IA."
 
     except OpenAIError:
-        reply_text = (
-            "He tenido un problema al procesar tu mensaje. "
-            "¿Puedes volver a intentarlo?"
-        )
+        reply_text = "Error al procesar tu mensaje."
 
-    # 👉 Twilio requiere respuestas en formato TwiML
-    twiml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
+    return PlainTextResponse(
+        content=f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Message>{reply_text}</Message>
-</Response>"""
-
-    return PlainTextResponse(content=twiml_response, media_type="application/xml")
+</Response>""",
+        media_type="application/xml",
+    )
